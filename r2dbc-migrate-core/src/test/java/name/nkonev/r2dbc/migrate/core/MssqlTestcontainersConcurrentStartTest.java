@@ -15,11 +15,15 @@ import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import java.time.Duration;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptibles;
@@ -32,6 +36,10 @@ public class MssqlTestcontainersConcurrentStartTest {
 
     static volatile GenericContainer container;
     final static String password = "yourStrong(!)Password";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MssqlTestcontainersConcurrentStartTest.class);
+
+    Random random = new Random();
 
     @AfterEach
     public void afterAll() {
@@ -65,10 +73,12 @@ public class MssqlTestcontainersConcurrentStartTest {
         }
     }
 
-    @Test
+    @RepeatedTest(50)
     public void testThatMigratorCanHandleSituationWhenDatabaseStillStarting() {
+        int randomInteger = random.nextInt(10);
         Thread thread = new Thread(() -> {
-            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
+            LOGGER.info("Sleeping random {} seconds before start the container", randomInteger);
+            Uninterruptibles.sleepUninterruptibly(randomInteger, TimeUnit.SECONDS);
             container = new GenericContainer("mcr.microsoft.com/mssql/server:2017-CU19-ubuntu-16.04")
                 .withExposedPorts(MSSQL_HARDCODED_PORT)
                 .withEnv("ACCEPT_EULA", "Y")
