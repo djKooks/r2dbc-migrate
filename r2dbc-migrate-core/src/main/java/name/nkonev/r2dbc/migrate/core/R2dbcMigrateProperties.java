@@ -16,6 +16,9 @@ public class R2dbcMigrateProperties {
     private Duration acquireLockRetryDelay = Duration.ofSeconds(1);
     private long acquireLockMaxRetries = 100;
     private Charset fileCharset = StandardCharsets.UTF_8;
+    private long maxRetries = 0;
+    private Duration queryTimeout = Duration.ofMinutes(5);
+    private Duration retryDelay = Duration.ofSeconds(1);
 
     public R2dbcMigrateProperties() {
     }
@@ -109,20 +112,47 @@ public class R2dbcMigrateProperties {
         this.validationQueryExpectedResultValue = validationQueryExpectedResultValue;
     }
 
+    public long getMaxRetries() {
+        return maxRetries;
+    }
+
+    public void setMaxRetries(long maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+
+    public Duration getQueryTimeout() {
+        return queryTimeout;
+    }
+
+    public void setQueryTimeout(Duration queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
+
+    public Duration getRetryDelay() {
+        return retryDelay;
+    }
+
+    public void setRetryDelay(Duration retryDelay) {
+        this.retryDelay = retryDelay;
+    }
+
     @Override
     public String toString() {
-        return "MigrateProperties{" +
-                "connectionMaxRetries=" + connectionMaxRetries +
-                ", resourcesPath='" + resourcesPath + '\'' +
-                ", chunkSize=" + chunkSize +
-                ", dialect=" + dialect +
-                ", validationQuery='" + validationQuery + '\'' +
-                ", validationQueryExpectedResultValue='" + validationQueryExpectedResultValue + '\'' +
-                ", validationQueryTimeout=" + validationQueryTimeout +
-                ", validationRetryDelay=" + validationRetryDelay +
-                ", acquireLockRetryDelay=" + acquireLockRetryDelay +
-                ", acquireLockMaxRetries=" + acquireLockMaxRetries +
-                ", fileCharset=" + fileCharset +
-                '}';
+        return "R2dbcMigrateProperties{" +
+            "connectionMaxRetries=" + connectionMaxRetries +
+            ", resourcesPath='" + resourcesPath + '\'' +
+            ", chunkSize=" + chunkSize +
+            ", dialect=" + dialect +
+            ", validationQuery='" + validationQuery + '\'' +
+            ", validationQueryExpectedResultValue='" + validationQueryExpectedResultValue + '\'' +
+            ", validationQueryTimeout=" + validationQueryTimeout +
+            ", validationRetryDelay=" + validationRetryDelay +
+            ", acquireLockRetryDelay=" + acquireLockRetryDelay +
+            ", acquireLockMaxRetries=" + acquireLockMaxRetries +
+            ", fileCharset=" + fileCharset +
+            ", maxRetries=" + maxRetries +
+            ", queryTimeout=" + queryTimeout +
+            ", retryDelay=" + retryDelay +
+            '}';
     }
 }

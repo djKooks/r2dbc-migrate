@@ -70,6 +70,24 @@
     "type": "long",
     "description": "Count of retries to acquire lock from \"migrations_lock\" table",
     "sourceType": "name.nkonev.r2dbc.migrate.autoconfigure.R2dbcMigrateAutoConfiguration.SpringBootR2dbcMigrateProperties"
+  },
+  {
+    "name": "r2dbc.migrate.max-retries",
+    "type": "long",
+    "description": "Number of retries to retry single migration thing. Migration transaction can be aborted at database startup. 0 means disabled. Default is 0.",
+    "sourceType": "name.nkonev.r2dbc.migrate.autoconfigure.R2dbcMigrateAutoConfiguration.SpringBootR2dbcMigrateProperties"
+  },
+  {
+    "name": "r2dbc.migrate.query-timeout",
+    "type": "java.time.Duration",
+    "description": "Reactor-provided timeout for single migration thing. Default is 5 minutes.",
+    "sourceType": "name.nkonev.r2dbc.migrate.autoconfigure.R2dbcMigrateAutoConfiguration.SpringBootR2dbcMigrateProperties"
+  },
+  {
+    "name": "r2dbc.migrate.retry-delay",
+    "type": "java.time.Duration",
+    "description": "Delay between retries of migrate thing.",
+    "sourceType": "name.nkonev.r2dbc.migrate.autoconfigure.R2dbcMigrateAutoConfiguration.SpringBootR2dbcMigrateProperties"
   }
 ],"hints": [
   {
@@ -115,7 +133,7 @@
         "description": "PostgreSQL connection check with result column."
       },
       {
-        "value": "SELECT collation_name as result FROM sys.databases WHERE name = N'master'",
+        "value": "SET LOCK_TIMEOUT 2000; SELECT collation_name as result FROM sys.databases WHERE name = N'master'",
         "description": "Checks that Microsoft SQL Server configuration completed and collation_name is set."
       }
     ],
