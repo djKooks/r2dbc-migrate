@@ -1,0 +1,153 @@
+23.05.2020 10:14:35.157 INFO  [main] n.n.r2dbc.migrate.core.R2dbcMigrate:103 Configured with MigrateProperties{connectionMaxRetries=1024, resourcesPath='classpath:/migrations/mssql/*.sql', chunkSize=1000, dialect=MSSQL, validationQuery='select '1' as result', validationQueryExpectedResultValue='1', validationQueryTimeout=PT5S, validationRetryDelay=PT1S, acquireLockRetryDelay=PT1S, acquireLockMaxRetries=100, fileCharset=UTF-8}
+23.05.2020 10:14:35.906 WARN  [reactor-tcp-epoll-1] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:36.914 WARN  [reactor-tcp-epoll-2] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:37.919 WARN  [reactor-tcp-epoll-3] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:38.924 WARN  [reactor-tcp-epoll-4] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:39.935 WARN  [reactor-tcp-epoll-5] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:39.996 INFO  [Thread-0] o.t.d.DockerClientProviderStrategy:110 Loaded org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy from ~/.testcontainers.properties, will try it first
+23.05.2020 10:14:40.570 INFO  [Thread-0] o.t.d.EnvironmentAndSystemPropertyClientProviderStrategy:47 Found docker client settings from environment
+23.05.2020 10:14:40.570 INFO  [Thread-0] o.t.d.DockerClientProviderStrategy:119 Found Docker environment with Environment variables, system properties and defaults. Resolved dockerHost=unix:///var/run/docker.sock
+23.05.2020 10:14:40.768 INFO  [Thread-0] o.testcontainers.DockerClientFactory:137 Docker host IP address is localhost
+23.05.2020 10:14:40.797 INFO  [Thread-0] o.testcontainers.DockerClientFactory:144 Connected to docker:
+  Server Version: 18.09.8
+  API Version: 1.39
+  Operating System: Fedora 31 (Thirty One)
+  Total Memory: 15867 MB
+23.05.2020 10:14:40.940 WARN  [reactor-tcp-epoll-6] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:41.821 INFO  [Thread-0] o.testcontainers.DockerClientFactory:156 Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+23.05.2020 10:14:41.821 INFO  [Thread-0] o.testcontainers.DockerClientFactory:167 Checking the system...
+23.05.2020 10:14:41.822 INFO  [Thread-0] o.testcontainers.DockerClientFactory:224 ✔︎ Docker server version should be at least 1.6.0
+23.05.2020 10:14:41.945 WARN  [reactor-tcp-epoll-7] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.netty.channel.AbstractChannel$AnnotatedConnectException: finishConnect(..) failed: Connection refused: /127.0.0.1:3333
+23.05.2020 10:14:42.227 INFO  [Thread-0] o.testcontainers.DockerClientFactory:224 ✔︎ Docker environment should have more than 2GB free disk space
+23.05.2020 10:14:42.292 INFO  [Thread-0] ?.m.c.04]:349 Creating container for image: mcr.microsoft.com/mssql/server:2017-CU19-ubuntu-16.04
+23.05.2020 10:14:42.402 INFO  [Thread-0] ?.m.c.04]:405 Starting container with ID: 3269cfe5bf668a49ee45d5243fcce59f59507429ac77b182500f913746a76435
+23.05.2020 10:14:43.130 INFO  [Thread-0] ?.m.c.04]:409 Container mcr.microsoft.com/mssql/server:2017-CU19-ubuntu-16.04 is starting: 3269cfe5bf668a49ee45d5243fcce59f59507429ac77b182500f913746a76435
+23.05.2020 10:14:47.946 ERROR [parallel-7] i.r.mssql.client.ReactorNettyClient:309 Exchange cancelled while exchange is active. This is likely a bug leading to unpredictable outcome.
+23.05.2020 10:14:47.947 WARN  [parallel-7] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 5000ms in 'takeLastOne' (and no fallback has been configured)
+23.05.2020 10:14:53.949 ERROR [parallel-1] i.r.mssql.client.ReactorNettyClient:309 Exchange cancelled while exchange is active. This is likely a bug leading to unpredictable outcome.
+23.05.2020 10:14:53.949 WARN  [parallel-1] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 5000ms in 'takeLastOne' (and no fallback has been configured)
+23.05.2020 10:14:55.237 ERROR [reactor-tcp-epoll-2] i.r.mssql.client.ReactorNettyClient:309 Exchange cancelled while exchange is active. This is likely a bug leading to unpredictable outcome.
+23.05.2020 10:14:55.238 WARN  [reactor-tcp-epoll-2] n.n.r2dbc.migrate.core.R2dbcMigrate:121 Retrying to get database connection due class io.r2dbc.mssql.ExceptionFactory$MssqlPermissionDeniedException: Login failed for user 'sa'.
+23.05.2020 10:14:56.599 INFO  [reactor-tcp-epoll-3] n.n.r2dbc.migrate.core.R2dbcMigrate:114 Comparing expected value '1' with provided result '1'
+23.05.2020 10:14:56.604 INFO  [reactor-tcp-epoll-3] n.n.r2dbc.migrate.core.R2dbcMigrate:123 Successfully got result '1' of test query
+
+
+io.r2dbc.mssql.ExceptionFactory$MssqlRollbackException: [1205] [40001] Transaction (Process ID 51) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
+
+	at io.r2dbc.mssql.ExceptionFactory.createException(ExceptionFactory.java:148)
+	at io.r2dbc.mssql.MssqlResult.lambda$getRowsUpdated$0(MssqlResult.java:120)
+	at reactor.core.publisher.FluxHandleFuseable$HandleFuseableSubscriber.onNext(FluxHandleFuseable.java:163)
+	at reactor.core.publisher.FluxWindowPredicate$WindowFlux.drainRegular(FluxWindowPredicate.java:650)
+	at reactor.core.publisher.FluxWindowPredicate$WindowFlux.drain(FluxWindowPredicate.java:728)
+	at reactor.core.publisher.FluxWindowPredicate$WindowFlux.onNext(FluxWindowPredicate.java:770)
+	at reactor.core.publisher.FluxWindowPredicate$WindowPredicateMain.onNext(FluxWindowPredicate.java:249)
+	at reactor.core.publisher.FluxContextStart$ContextStartSubscriber.onNext(FluxContextStart.java:96)
+	at io.r2dbc.mssql.util.FluxDiscardOnCancel$FluxDiscardOnCancelSubscriber.onNext(FluxDiscardOnCancel.java:88)
+	at reactor.core.publisher.FluxHandle$HandleSubscriber.onNext(FluxHandle.java:112)
+	at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:845)
+	at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:845)
+	at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:845)
+	at reactor.core.publisher.FluxHandle$HandleConditionalSubscriber.onNext(FluxHandle.java:319)
+	at reactor.core.publisher.MonoFlatMapMany$FlatMapManyInner.onNext(MonoFlatMapMany.java:242)
+	at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:192)
+	at reactor.core.publisher.EmitterProcessor.drain(EmitterProcessor.java:426)
+	at reactor.core.publisher.EmitterProcessor.onNext(EmitterProcessor.java:268)
+	at io.r2dbc.mssql.client.ReactorNettyClient$1.next(ReactorNettyClient.java:237)
+	at io.r2dbc.mssql.client.ReactorNettyClient$1.next(ReactorNettyClient.java:197)
+	at io.r2dbc.mssql.message.token.Tabular$TabularDecoder.decode(Tabular.java:425)
+	at io.r2dbc.mssql.client.ConnectionState$4$1.decode(ConnectionState.java:206)
+	at io.r2dbc.mssql.client.StreamDecoder.withState(StreamDecoder.java:137)
+	at io.r2dbc.mssql.client.StreamDecoder.decode(StreamDecoder.java:109)
+	at io.r2dbc.mssql.client.ReactorNettyClient.lambda$new$6(ReactorNettyClient.java:247)
+	at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:177)
+	at reactor.netty.channel.FluxReceive.drainReceiver(FluxReceive.java:220)
+	at reactor.netty.channel.FluxReceive.onInboundNext(FluxReceive.java:354)
+	at reactor.netty.channel.ChannelOperations.onInboundNext(ChannelOperations.java:352)
+	at reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelOperationsHandler.java:96)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+	at io.netty.channel.ChannelInboundHandlerAdapter.channelRead(ChannelInboundHandlerAdapter.java:93)
+	at io.r2dbc.mssql.client.ssl.TdsSslHandler.channelRead(TdsSslHandler.java:402)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1410)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:919)
+	at io.netty.channel.epoll.AbstractEpollStreamChannel$EpollStreamUnsafe.epollInReady(AbstractEpollStreamChannel.java:792)
+	at io.netty.channel.epoll.EpollEventLoop.processReady(EpollEventLoop.java:475)
+	at io.netty.channel.epoll.EpollEventLoop.run(EpollEventLoop.java:378)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:989)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:830)
+	Suppressed: java.lang.Exception: #block terminated with an error
+		at reactor.core.publisher.BlockingSingleSubscriber.blockingGet(BlockingSingleSubscriber.java:99)
+		at reactor.core.publisher.Mono.block(Mono.java:1678)
+		at name.nkonev.r2dbc.migrate.core.MssqlTestcontainersConcurrentStartTest.testThatMigratorCanHandleSituationWhenDatabaseStillStarting(MssqlTestcontainersConcurrentStartTest.java:90)
+		at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+		at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+		at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+		at java.base/java.lang.reflect.Method.invoke(Method.java:567)
+		at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:686)
+		at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+		at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+		at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:149)
+		at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:140)
+		at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:84)
+		at org.junit.jupiter.engine.execution.ExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(ExecutableInvoker.java:115)
+		at org.junit.jupiter.engine.execution.ExecutableInvoker.lambda$invoke$0(ExecutableInvoker.java:105)
+		at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+		at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+		at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+		at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+		at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:104)
+		at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:98)
+		at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$6(TestMethodTestDescriptor.java:212)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:208)
+		at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+		at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:71)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$5(NodeTestTask.java:135)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$7(NodeTestTask.java:125)
+		at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:135)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:123)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:122)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:80)
+		at java.base/java.util.ArrayList.forEach(ArrayList.java:1507)
+		at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:38)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$5(NodeTestTask.java:139)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$7(NodeTestTask.java:125)
+		at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:135)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:123)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:122)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:80)
+		at java.base/java.util.ArrayList.forEach(ArrayList.java:1507)
+		at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:38)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$5(NodeTestTask.java:139)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$7(NodeTestTask.java:125)
+		at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:135)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:123)
+		at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:122)
+		at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:80)
+		at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:32)
+		at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+		at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:51)
+		at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:248)
+		at org.junit.platform.launcher.core.DefaultLauncher.lambda$execute$5(DefaultLauncher.java:211)
+		at org.junit.platform.launcher.core.DefaultLauncher.withInterceptedStreams(DefaultLauncher.java:226)
+		at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:199)
+		at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:132)
+		at com.intellij.junit5.JUnit5IdeaTestRunner.startRunnerWithArgs(JUnit5IdeaTestRunner.java:69)
+		at com.intellij.rt.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:33)
+		at com.intellij.rt.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:230)
+		at com.intellij.rt.junit.JUnitStarter.main(JUnitStarter.java:58)
+
