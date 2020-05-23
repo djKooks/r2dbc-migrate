@@ -183,7 +183,8 @@ public abstract class R2dbcMigrate {
         return transactionalWrap(connection, true, (connection.createStatement(sqlQueries.releaseLock()).execute()), "Releasing lock");
     }
 
-    private static Mono<Void> releaseLockNotTransactional(Connection connection, SqlQueries sqlQueries) {
+    private static Mono<Void> releaseLockAfterError(Throwable throwable, Connection connection, SqlQueries sqlQueries) {
+        LOGGER.error("Got error", throwable);
         return transactionalWrap(connection, false, (connection.createStatement(sqlQueries.releaseLock()).execute()), "Releasing lock after error");
     }
 
@@ -206,7 +207,7 @@ public abstract class R2dbcMigrate {
                                             makeMigration(connection, properties, tuple2).log("R2dbcMigrateMakeMigrationWork", Level.FINE)
                                                 .then(writeMigrationMetadata(connection, sqlQueries, tuple2).log("R2dbcMigrateWritingMigrationMetadata", Level.FINE))
                                     , 1)
-                                    .onErrorResume(throwable -> releaseLockNotTransactional(connection, sqlQueries).then(Mono.error(throwable)))
+                                    .onErrorResume(throwable -> releaseLockAfterError(throwable, connection, sqlQueries).then(Mono.error(throwable)))
                                     .then(releaseLock(connection, sqlQueries).log("R2dbcMigrateReleasingLock", Level.FINE));
                         });
 

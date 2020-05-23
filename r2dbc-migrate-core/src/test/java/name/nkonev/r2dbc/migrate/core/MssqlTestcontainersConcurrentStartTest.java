@@ -39,14 +39,7 @@ public class MssqlTestcontainersConcurrentStartTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MssqlTestcontainersConcurrentStartTest.class);
 
-    Random random = new Random();
-
-    @AfterEach
-    public void afterAll() {
-        if (container!=null) {
-            container.stop();
-        }
-    }
+    static final Random random = new Random();
 
     private Mono<Connection> makeConnectionMono(int port) {
         ConnectionFactory connectionFactory = ConnectionFactories.get(ConnectionFactoryOptions.builder()
@@ -93,28 +86,42 @@ public class MssqlTestcontainersConcurrentStartTest {
         thread.setDaemon(true);
         thread.start();
 
-        R2dbcMigrateProperties properties = new R2dbcMigrateProperties();
-        properties.setConnectionMaxRetries(1024);
-        properties.setDialect(Dialect.MSSQL);
-        properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
-        R2dbcMigrate.migrate(() -> makeConnectionMono(MSSQL_HARDCODED_PORT), properties).block();
+        try {
+            R2dbcMigrateProperties properties = new R2dbcMigrateProperties();
+            properties.setConnectionMaxRetries(1024);
+            properties.setDialect(Dialect.MSSQL);
+            properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
+            R2dbcMigrate.migrate(() -> makeConnectionMono(MSSQL_HARDCODED_PORT), properties)
+                .block();
 
-
-        Flux<Client> clientFlux = makeConnectionMono(MSSQL_HARDCODED_PORT)
-                .flatMapMany(connection -> Flux.from(connection.createStatement("select * from sales_department.rich_clients.client").execute()).doFinally(signalType -> connection.close()))
+            Flux<Client> clientFlux = makeConnectionMono(MSSQL_HARDCODED_PORT)
+                .flatMapMany(connection -> Flux.from(
+                    connection.createStatement("select * from sales_department.rich_clients.client")
+                        .execute()).doFinally(signalType -> connection.close()))
                 .flatMap(o -> o.map((row, rowMetadata) -> {
                     return new Client(
-                            row.get("first_name", String.class),
-                            row.get("second_name", String.class),
-                            row.get("account", String.class),
-                            row.get("estimated_money", Integer.class)
+                        row.get("first_name", String.class),
+                        row.get("second_name", String.class),
+                        row.get("account", String.class),
+                        row.get("estimated_money", Integer.class)
                     );
                 }));
-        Client client = clientFlux.blockLast();
+            Client client = clientFlux.blockLast();
 
-        Assertions.assertEquals("John", client.firstName);
-        Assertions.assertEquals("Smith", client.secondName);
-        Assertions.assertEquals("4444", client.account);
-        Assertions.assertEquals(9999999, client.estimatedMoney);
+            Assertions.assertEquals("John", client.firstName);
+            Assertions.assertEquals("Smith", client.secondName);
+            Assertions.assertEquals("4444", client.account);
+            Assertions.assertEquals(9999999, client.estimatedMoney);
+        } finally {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (container!=null) {
+                container.stop();
+            }
+
+        }
     }
 }
