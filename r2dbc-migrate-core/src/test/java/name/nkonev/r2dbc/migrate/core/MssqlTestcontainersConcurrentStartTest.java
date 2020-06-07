@@ -14,6 +14,7 @@ import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +81,7 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT)
                 .waitingFor(new LogMessageWaitStrategy().withRegEx(".*The default collation was successfully changed.*\\s")
                     .withStartupTimeout(Duration.ofSeconds(waitTestcontainersSeconds)));
-            container.setPortBindings(List.of(MSSQL_HARDCODED_PORT+":"+MSSQL_HARDCODED_PORT));
+            container.setPortBindings(Arrays.asList(MSSQL_HARDCODED_PORT+":"+MSSQL_HARDCODED_PORT));
             container.start();
         });
         thread.setDaemon(true);
