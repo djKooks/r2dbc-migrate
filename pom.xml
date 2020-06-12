@@ -36,7 +36,7 @@
 
 	<properties>
 		<java.version>8</java.version>
-		<spring.boot.version>2.3.0.RELEASE</spring.boot.version>
+		<spring.boot.version>2.3.1.RELEASE</spring.boot.version>
 		<maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
 		<testcontainers.version>1.14.3</testcontainers.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -54,12 +54,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>io.r2dbc</groupId>
-				<artifactId>r2dbc-mssql</artifactId>
-				<version>0.8.3.RELEASE</version>
-			</dependency>
-
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
