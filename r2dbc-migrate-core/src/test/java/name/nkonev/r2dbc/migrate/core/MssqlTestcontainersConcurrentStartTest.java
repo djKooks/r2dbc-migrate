@@ -5,10 +5,13 @@ import static io.r2dbc.spi.ConnectionFactoryOptions.DRIVER;
 import static io.r2dbc.spi.ConnectionFactoryOptions.HOST;
 import static io.r2dbc.spi.ConnectionFactoryOptions.PASSWORD;
 import static io.r2dbc.spi.ConnectionFactoryOptions.PORT;
+import static io.r2dbc.spi.ConnectionFactoryOptions.PROTOCOL;
 import static io.r2dbc.spi.ConnectionFactoryOptions.USER;
 import static name.nkonev.r2dbc.migrate.core.TestConstants.waitTestcontainersSeconds;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.r2dbc.pool.ConnectionPool;
+import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
@@ -51,7 +54,15 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .option(PASSWORD, password)
                 .option(DATABASE, "master")
                 .build());
-        Publisher<? extends Connection> connectionPublisher = connectionFactory.create();
+        ConnectionPoolConfiguration configuration = ConnectionPoolConfiguration.builder(connectionFactory)
+            .maxIdleTime(Duration.ofSeconds(8))
+            .acquireRetry(10)
+            .maxAcquireTime(Duration.ofSeconds(4))
+            .maxSize(20)
+            .build();
+
+        ConnectionPool pool = new ConnectionPool(configuration);
+        Publisher<? extends Connection> connectionPublisher = pool.create();
         return Mono.from(connectionPublisher);
     }
 
