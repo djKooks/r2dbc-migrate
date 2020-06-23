@@ -110,7 +110,7 @@ public abstract class R2dbcMigrate {
         }
         return queryWithTimeoutAndFixedRetry(result, properties);
     }
-
+    // TODO add ability to disable or check retries = 0 or 1
     private static  <T> Mono<T> queryWithTimeoutAndFixedRetry(Mono<T> action, R2dbcMigrateProperties properties) {
         return action
             .timeout(properties.getQueryTimeout())
@@ -244,12 +244,12 @@ public abstract class R2dbcMigrate {
     }
 
     private static Mono<Integer> getDatabaseVersionOrZero(SqlQueries sqlQueries, Connection connection, R2dbcMigrateProperties properties) {
-        // TODO use form of queryWithTimeoutAndFixedRetry
+
         return withAutoCommit(connection, connection.createStatement(sqlQueries.getMaxMigration()).execute())
             .last()
             .flatMap(o -> Mono.from(o.map(getResultSafely("max", Integer.class, 0))))
             .switchIfEmpty(Mono.just(0))
-
+            // TODO use form of queryWithTimeoutAndFixedRetry
             .timeout(properties.getQueryTimeout())
             .retryWhen(Retry.fixedDelay(properties.getMaxRetries(),
                 properties.getRetryDelay()).doBeforeRetry(retrySignal -> {
