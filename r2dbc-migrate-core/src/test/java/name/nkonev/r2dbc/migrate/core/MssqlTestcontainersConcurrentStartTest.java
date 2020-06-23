@@ -16,6 +16,7 @@ import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
+import io.r2dbc.spi.ValidationDepth;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +46,7 @@ public class MssqlTestcontainersConcurrentStartTest {
 
     static final Random random = new Random();
 
-    private Mono<Connection> makeConnectionMono(int port) {
+    private ConnectionFactory makeConnectionMono(int port) {
         ConnectionFactory connectionFactory = ConnectionFactories.get(ConnectionFactoryOptions.builder()
                 .option(DRIVER, "mssql")
                 .option(HOST, "127.0.0.1")
@@ -56,14 +57,16 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .build());
         ConnectionPoolConfiguration configuration = ConnectionPoolConfiguration.builder(connectionFactory)
             .maxIdleTime(Duration.ofSeconds(8))
-            .acquireRetry(10)
+            .acquireRetry(100)
             .maxAcquireTime(Duration.ofSeconds(4))
             .maxSize(20)
+            .validationQuery("SELECT 1")
+            .validationDepth(ValidationDepth.REMOTE)
+            .maxCreateConnectionTime(Duration.ofSeconds(15))
             .build();
 
         ConnectionPool pool = new ConnectionPool(configuration);
-        Publisher<? extends Connection> connectionPublisher = pool.create();
-        return Mono.from(connectionPublisher);
+        return pool;
     }
 
     static class Client {
@@ -103,10 +106,9 @@ public class MssqlTestcontainersConcurrentStartTest {
             properties.setConnectionMaxRetries(1024);
             properties.setDialect(Dialect.MSSQL);
             properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
-            R2dbcMigrate.migrate(() -> makeConnectionMono(MSSQL_HARDCODED_PORT), properties)
-                .block();
+            R2dbcMigrate.migrate(makeConnectionMono(MSSQL_HARDCODED_PORT), properties).block();
 
-            Flux<Client> clientFlux = makeConnectionMono(MSSQL_HARDCODED_PORT)
+            Flux<Client> clientFlux = Mono.from(makeConnectionMono(MSSQL_HARDCODED_PORT).create())
                 .flatMapMany(connection -> Flux.from(
                     connection.createStatement("select * from sales_department.rich_clients.client")
                         .execute()).doFinally(signalType -> connection.close()))
