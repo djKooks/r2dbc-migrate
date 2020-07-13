@@ -48,25 +48,14 @@ public class MssqlTestcontainersConcurrentStartTest {
 
     private ConnectionFactory makeConnectionMono(int port) {
         ConnectionFactory connectionFactory = ConnectionFactories.get(ConnectionFactoryOptions.builder()
-                .option(DRIVER, "mssql")
-                .option(HOST, "127.0.0.1")
-                .option(PORT, port)
-                .option(USER, "sa")
-                .option(PASSWORD, password)
-                .option(DATABASE, "master")
-                .build());
-        ConnectionPoolConfiguration configuration = ConnectionPoolConfiguration.builder(connectionFactory)
-            .maxIdleTime(Duration.ofSeconds(8))
-            .acquireRetry(100)
-            .maxAcquireTime(Duration.ofSeconds(4))
-            .maxSize(20)
-            .validationQuery("SELECT collation_name as result FROM sys.databases WHERE name = N'master'")
-            .validationDepth(ValidationDepth.REMOTE)
-            .maxCreateConnectionTime(Duration.ofSeconds(15))
-            .build();
-
-        ConnectionPool pool = new ConnectionPool(configuration);
-        return pool;
+            .option(DRIVER, "mssql")
+            .option(HOST, "127.0.0.1")
+            .option(PORT, port)
+            .option(USER, "sa")
+            .option(PASSWORD, password)
+            .option(DATABASE, "master")
+            .build());
+        return connectionFactory;
     }
 
     static class Client {
@@ -108,9 +97,10 @@ public class MssqlTestcontainersConcurrentStartTest {
             properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
             properties.setValidationQuery("SELECT collation_name as result FROM sys.databases WHERE name = N'master'");
             properties.setValidationQueryExpectedResultValue("Cyrillic_General_CI_AS");
-            R2dbcMigrate.migrate(makeConnectionMono(MSSQL_HARDCODED_PORT), properties).block();
+            ConnectionFactory connectionFactory = makeConnectionMono(MSSQL_HARDCODED_PORT);
+            R2dbcMigrate.migrate(connectionFactory, properties).block();
 
-            Flux<Client> clientFlux = Mono.from(makeConnectionMono(MSSQL_HARDCODED_PORT).create())
+            Flux<Client> clientFlux = Mono.from(connectionFactory.create())
                 .flatMapMany(connection -> Flux.from(
                     connection.createStatement("select * from sales_department.rich_clients.client")
                         .execute()).doFinally(signalType -> connection.close()))
