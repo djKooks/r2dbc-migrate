@@ -60,7 +60,7 @@ public class MssqlTestcontainersConcurrentStartTest {
             .acquireRetry(100)
             .maxAcquireTime(Duration.ofSeconds(4))
             .maxSize(20)
-            .validationQuery("SELECT 1")
+            .validationQuery("SELECT collation_name as result FROM sys.databases WHERE name = N'master'")
             .validationDepth(ValidationDepth.REMOTE)
             .maxCreateConnectionTime(Duration.ofSeconds(15))
             .build();
@@ -106,6 +106,8 @@ public class MssqlTestcontainersConcurrentStartTest {
             properties.setConnectionMaxRetries(1024);
             properties.setDialect(Dialect.MSSQL);
             properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
+            properties.setValidationQuery("SELECT collation_name as result FROM sys.databases WHERE name = N'master'");
+            properties.setValidationQueryExpectedResultValue("Cyrillic_General_CI_AS");
             R2dbcMigrate.migrate(makeConnectionMono(MSSQL_HARDCODED_PORT), properties).block();
 
             Flux<Client> clientFlux = Mono.from(makeConnectionMono(MSSQL_HARDCODED_PORT).create())
