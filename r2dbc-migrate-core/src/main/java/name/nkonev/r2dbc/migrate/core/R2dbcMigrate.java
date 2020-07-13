@@ -129,8 +129,6 @@ public abstract class R2dbcMigrate {
     public static Mono<Void> migrate(ConnectionFactory connectionSupplier, R2dbcMigrateProperties properties) {
         LOGGER.info("Configured with {}", properties);
 
-        // Here we build cold publisher which will recreate ConnectionFactory if test query fails.
-        // It need for MssqlConnectionFactory. MssqlConnectionFactory becomes broken if we make requests immediately after database started.
         Flux<? extends Result> testConnectionResults = Flux.usingWhen(connectionSupplier.create(),
             connection -> Flux.from(connection.createStatement(properties.getValidationQuery()).execute()),
             Connection::close).log("R2dbcMigrateCreatingTestConnection", Level.FINE);
