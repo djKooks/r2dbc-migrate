@@ -16,8 +16,8 @@ public class R2dbcMigrateProperties {
     private Duration acquireLockRetryDelay = Duration.ofSeconds(1);
     private long acquireLockMaxRetries = 100;
     private Charset fileCharset = StandardCharsets.UTF_8;
-    private long maxRetries = 5;
-    private Duration queryTimeout = Duration.ofSeconds(10);
+    private long maxRetries = 0;
+    private Duration queryTimeout = Duration.ofMinutes(5);
     private Duration retryDelay = Duration.ofSeconds(1);
 
     public R2dbcMigrateProperties() {

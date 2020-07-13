@@ -110,14 +110,19 @@ public abstract class R2dbcMigrate {
         }
         return queryWithTimeoutAndFixedRetry(result, properties);
     }
-    // TODO add ability to disable or check retries = 0 or 1
-    private static  <T> Mono<T> queryWithTimeoutAndFixedRetry(Mono<T> action, R2dbcMigrateProperties properties) {
-        return action
-            .timeout(properties.getQueryTimeout())
-            .retryWhen(Retry.fixedDelay(properties.getMaxRetries(),
-                properties.getRetryDelay()).doBeforeRetry(retrySignal -> {
-                LOGGER.warn("Retrying perform action {}: {}", retrySignal.failure().getClass(), retrySignal.failure().getMessage());
-            }));
+
+    private static <T> Mono<T> queryWithTimeoutAndFixedRetry(Mono<T> action, R2dbcMigrateProperties properties) {
+        Mono<T> timeouted = action.timeout(properties.getQueryTimeout());
+        if (properties.getMaxRetries() > 0) {
+            return timeouted
+                .retryWhen(Retry.fixedDelay(properties.getMaxRetries(),
+                    properties.getRetryDelay()).doBeforeRetry(retrySignal -> {
+                    LOGGER.warn("Retrying perform action {}: {}", retrySignal.failure().getClass(),
+                        retrySignal.failure().getMessage());
+                }));
+        } else {
+            return timeouted;
+        }
     }
 
     // entrypoint
@@ -177,7 +182,6 @@ public abstract class R2dbcMigrate {
         Mono<Integer> waitForLock = lockUpdated.retryWhen(reactor.util.retry.Retry.fixedDelay(properties.getAcquireLockMaxRetries(), properties.getAcquireLockRetryDelay()).doAfterRetry(retrySignal -> {
             LOGGER.warn("Waiting for lock");
         }));
-        // TODO here retry is not need
         return transactionalWrapUnchecked(connection, true, waitForLock, properties);
     }
 
@@ -245,17 +249,10 @@ public abstract class R2dbcMigrate {
 
     private static Mono<Integer> getDatabaseVersionOrZero(SqlQueries sqlQueries, Connection connection, R2dbcMigrateProperties properties) {
 
-        return withAutoCommit(connection, connection.createStatement(sqlQueries.getMaxMigration()).execute())
+        return queryWithTimeoutAndFixedRetry(withAutoCommit(connection, connection.createStatement(sqlQueries.getMaxMigration()).execute())
             .last()
             .flatMap(o -> Mono.from(o.map(getResultSafely("max", Integer.class, 0))))
-            .switchIfEmpty(Mono.just(0))
-            // TODO use form of queryWithTimeoutAndFixedRetry
-            .timeout(properties.getQueryTimeout())
-            .retryWhen(Retry.fixedDelay(properties.getMaxRetries(),
-                properties.getRetryDelay()).doBeforeRetry(retrySignal -> {
-                LOGGER.warn("Retrying perform action {}: {}", retrySignal.failure().getClass(), retrySignal.failure().getMessage());
-            }))
-        ;
+            .switchIfEmpty(Mono.just(0)), properties);
     }
 
     static <ColumnType> BiFunction<Row, RowMetadata, ColumnType> getResultSafely(String resultColumn, Class<ColumnType> ct, ColumnType defaultValue) {
