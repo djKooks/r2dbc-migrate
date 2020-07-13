@@ -1,5 +1,6 @@
 package name.nkonev.r2dbc.migrate.core;
 
+import static io.r2dbc.spi.ConnectionFactoryOptions.CONNECT_TIMEOUT;
 import static io.r2dbc.spi.ConnectionFactoryOptions.DATABASE;
 import static io.r2dbc.spi.ConnectionFactoryOptions.DRIVER;
 import static io.r2dbc.spi.ConnectionFactoryOptions.HOST;
@@ -95,7 +96,7 @@ public class MssqlTestcontainersConcurrentStartTest {
             properties.setConnectionMaxRetries(1024);
             properties.setDialect(Dialect.MSSQL);
             properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
-            properties.setValidationQuery("SELECT collation_name as result FROM sys.databases WHERE name = N'master'");
+            properties.setValidationQuery("SET LOCK_TIMEOUT 2000; SELECT collation_name as result FROM sys.databases WHERE name = N'master'");
             properties.setValidationQueryExpectedResultValue("Cyrillic_General_CI_AS");
             ConnectionFactory connectionFactory = makeConnectionMono(MSSQL_HARDCODED_PORT);
             R2dbcMigrate.migrate(connectionFactory, properties).block();
