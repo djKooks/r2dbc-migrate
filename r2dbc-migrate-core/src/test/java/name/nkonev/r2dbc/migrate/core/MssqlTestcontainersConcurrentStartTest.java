@@ -27,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptib
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@EnabledIfSystemProperty(named = "enableFuzzyStartTests", matches = "true")
 public class MssqlTestcontainersConcurrentStartTest {
 
     final static int MSSQL_HARDCODED_PORT = 3333;
