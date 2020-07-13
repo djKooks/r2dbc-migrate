@@ -41,21 +41,13 @@ public class R2dbcMigrateAutoConfiguration {
     // copy-paste from org.springframework.boot.autoconfigure.r2dbc.ConnectionFactoryConfigurations
     protected static ConnectionFactory createConnectionFactory(R2dbcProperties properties, ClassLoader classLoader,
                                                                List<ConnectionFactoryOptionsBuilderCustomizer> optionsCustomizers) {
+        LOGGER.debug("Supplying ConnectionFactory");
         return ConnectionFactoryBuilder.of(properties, () -> EmbeddedDatabaseConnection.get(classLoader))
                 .configure((options) -> {
                     for (ConnectionFactoryOptionsBuilderCustomizer optionsCustomizer : optionsCustomizers) {
                         optionsCustomizer.customize(options);
                     }
                 }).build();
-    }
-
-    // Connection supplier creating new Connection from new ConnectionFactory.
-    // It's intentionally behaviour, see explanation in R2dbcMigrate#migrate
-    protected static Mono<Connection> makeConnectionMono(R2dbcProperties properties,
-                                                         ResourceLoader resourceLoader,
-                                                         ObjectProvider<ConnectionFactoryOptionsBuilderCustomizer> customizers) {
-        LOGGER.debug("Supplying connection");
-        return Mono.from(createConnectionFactory(properties, resourceLoader.getClassLoader(), customizers.orderedStream().collect(Collectors.toList())).create());
     }
 
     @ConfigurationProperties("r2dbc.migrate")
@@ -79,7 +71,7 @@ public class R2dbcMigrateAutoConfiguration {
         }
 
         public void migrate() {
-            R2dbcMigrate.migrate(() -> makeConnectionMono(r2dbcProperties, resourceLoader, customizers), properties).block();
+            R2dbcMigrate.migrate(createConnectionFactory(r2dbcProperties, resourceLoader.getClassLoader(), customizers.orderedStream().collect(Collectors.toList())), properties).block();
             LOGGER.info("End of migration");
         }
 
