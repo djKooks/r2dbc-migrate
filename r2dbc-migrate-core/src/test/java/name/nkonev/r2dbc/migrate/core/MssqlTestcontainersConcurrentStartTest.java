@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -91,11 +92,26 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .withEnv("MSSQL_COLLATION", "cyrillic_general_ci_as")
                 .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT);
             container.setPortBindings(Arrays.asList(MSSQL_HARDCODED_PORT+":"+MSSQL_HARDCODED_PORT));
-            container.followOutput(logConsumer);
             container.start();
         });
         thread.setDaemon(true);
         thread.start();
+
+        Thread thread2 = new Thread(() -> {
+            for (;;) {
+                try {
+                    container.followOutput(logConsumer);
+                    LOGGER.info("Successfully subscribed to");
+                    break;
+                } catch (RuntimeException i) {
+                    LOGGER.warn("Unable to subscribe to");
+                    Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+                }
+            }
+        });
+        thread2.setDaemon(true);
+        thread2.start();
+
 
         try {
             R2dbcMigrateProperties properties = new R2dbcMigrateProperties();
