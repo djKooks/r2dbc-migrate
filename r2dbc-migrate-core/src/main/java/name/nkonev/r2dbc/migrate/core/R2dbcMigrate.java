@@ -124,7 +124,7 @@ public abstract class R2dbcMigrate {
                 .from(connection.validate(ValidationDepth.REMOTE))
                 .filter(Boolean.TRUE::equals)
                 .switchIfEmpty(Mono.error(new RuntimeException("Connection is not valid")))
-                .then(withAutoCommit(connection, Flux.from(connection.createStatement(properties.getValidationQuery()).execute()))
+                .then(Flux.from(connection.createStatement(properties.getValidationQuery()).execute())
                     .flatMap(o -> o.map(
                         getResultSafely("result", String.class, "__VALIDATION_RESULT_NOT_PROVIDED")))
                     .filter(s -> {
