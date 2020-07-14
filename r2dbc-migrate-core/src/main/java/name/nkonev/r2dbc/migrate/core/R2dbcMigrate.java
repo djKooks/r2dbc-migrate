@@ -121,7 +121,10 @@ public abstract class R2dbcMigrate {
                 return Mono.from(connectionFactory.create());
             }),
             connection -> Flux
-                .from(connection.createStatement(properties.getValidationQuery()).execute())
+                .from(connection.validate(ValidationDepth.REMOTE))
+                .filter(Boolean.TRUE::equals)
+                .switchIfEmpty(Mono.error(new RuntimeException("Connection is not valid")))
+                .then(Flux.from(connection.createStatement(properties.getValidationQuery()).execute())
                 .flatMap(o -> o.map(
                     getResultSafely("result", String.class, "__VALIDATION_RESULT_NOT_PROVIDED")))
                 .filter(s -> {
@@ -130,7 +133,7 @@ public abstract class R2dbcMigrate {
                     return properties.getValidationQueryExpectedResultValue().equals(s);
                 })
                 .switchIfEmpty(Mono.error(new RuntimeException("Not matched result of test query")))
-                .last(),
+                .last()),
             Connection::close).log("R2dbcMigrateCreatingTestConnection", Level.FINE);
 
         Mono<Void> migrationWork = stringMono.timeout(properties.getValidationQueryTimeout())
