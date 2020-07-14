@@ -17,8 +17,10 @@ import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
+import io.r2dbc.spi.Option;
 import io.r2dbc.spi.ValidationDepth;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -57,6 +59,7 @@ public class MssqlTestcontainersConcurrentStartTest {
             .option(USER, "sa")
             .option(PASSWORD, password)
             .option(DATABASE, "master")
+            .option(Option.valueOf("connectTimeout"), Duration.of(2, ChronoUnit.SECONDS))
             .build());
         return connectionFactory;
     }
