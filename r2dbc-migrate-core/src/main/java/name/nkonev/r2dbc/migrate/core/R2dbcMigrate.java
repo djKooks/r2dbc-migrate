@@ -1,6 +1,7 @@
 package name.nkonev.r2dbc.migrate.core;
 
 import io.r2dbc.spi.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -129,7 +130,11 @@ public abstract class R2dbcMigrate {
     public static Mono<Void> migrate(ConnectionFactory connectionSupplier, R2dbcMigrateProperties properties) {
         LOGGER.info("Configured with {}", properties);
 
-        Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->Mono.from(connectionSupplier.create())),
+        Function<ConnectionFactory, Publisher<? extends Connection>> makeConnectionPublisher = ConnectionFactory::create;
+
+        Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->{
+                return Mono.from(makeConnectionPublisher.apply(connectionSupplier));
+            }),
             connection -> Flux
                 .from(connection.createStatement(properties.getValidationQuery()).execute())
                 .flatMap(o -> o.map(
