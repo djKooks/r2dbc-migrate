@@ -101,8 +101,6 @@ public class MssqlTestcontainersConcurrentStartTest {
             properties.setResourcesPath("classpath:/migrations/mssql/*.sql");
             properties.setValidationQuery("SET LOCK_TIMEOUT 2000; SELECT collation_name as result FROM sys.databases WHERE name = N'master'");
             properties.setValidationQueryExpectedResultValue("Cyrillic_General_CI_AS");
-            properties.setMaxRetries(5);
-            properties.setQueryTimeout(Duration.ofSeconds(10));
             ConnectionFactory connectionFactory = makeConnectionMono(MSSQL_HARDCODED_PORT);
             R2dbcMigrate.migrate(connectionFactory, properties).block();
 
