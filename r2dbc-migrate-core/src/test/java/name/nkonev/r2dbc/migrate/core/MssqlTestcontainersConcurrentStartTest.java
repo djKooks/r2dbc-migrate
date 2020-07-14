@@ -87,9 +87,7 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .withEnv("ACCEPT_EULA", "Y")
                 .withEnv("SA_PASSWORD", password)
                 .withEnv("MSSQL_COLLATION", "cyrillic_general_ci_as")
-                .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT)
-                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*The default collation was successfully changed.*\\s")
-                    .withStartupTimeout(Duration.ofSeconds(waitTestcontainersSeconds)));
+                .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT);
             container.setPortBindings(Arrays.asList(MSSQL_HARDCODED_PORT+":"+MSSQL_HARDCODED_PORT));
             container.start();
         });
