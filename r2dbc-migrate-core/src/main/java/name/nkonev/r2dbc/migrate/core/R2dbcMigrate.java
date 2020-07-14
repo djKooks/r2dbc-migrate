@@ -116,27 +116,32 @@ public abstract class R2dbcMigrate {
     public static Mono<Void> migrate(ConnectionFactory connectionFactory, R2dbcMigrateProperties properties) {
         LOGGER.info("Configured with {}", properties);
 
-        Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->{
-                LOGGER.info("Creating new test connection");
-                return Mono.from(connectionFactory.create());
+        Mono<Void> testConnectionMono = Mono.usingWhen(Mono.defer(()->{
+                Publisher<? extends Connection> publisher = connectionFactory.create();
+                LOGGER.info("Creating new test connection {}", publisher);
+                return Mono.from(publisher);
             }),
-            connection -> Flux
-                .from(connection.validate(ValidationDepth.REMOTE))
+            connection ->
+                Flux.from(connection.validate(ValidationDepth.REMOTE))
                 .filter(Boolean.TRUE::equals)
                 .switchIfEmpty(Mono.error(new RuntimeException("Connection is not valid")))
-                .then(withAutoCommit(connection, Flux.from(connection.createStatement(properties.getValidationQuery()).execute()))
-                .flatMap(o -> o.map(
-                    getResultSafely("result", String.class, "__VALIDATION_RESULT_NOT_PROVIDED")))
-                .filter(s -> {
-                    LOGGER.info("Comparing expected value '{}' with provided result '{}'",
-                        properties.getValidationQueryExpectedResultValue(), s);
-                    return properties.getValidationQueryExpectedResultValue().equals(s);
-                })
-                .switchIfEmpty(Mono.error(new RuntimeException("Not matched result of test query")))
-                .last()),
+                .then(
+                    Mono.from(connection.beginTransaction())
+                    .then(Flux.from(connection.createStatement(properties.getValidationQuery()).execute())
+                    .flatMap(o -> o.map(getResultSafely("result", String.class, "__VALIDATION_RESULT_NOT_PROVIDED")))
+                    .filter(s -> {
+                        LOGGER.info("Comparing expected value '{}' with provided result '{}'",
+                            properties.getValidationQueryExpectedResultValue(), s);
+                        return properties.getValidationQueryExpectedResultValue().equals(s);
+                    })
+                    .switchIfEmpty(Mono.error(new RuntimeException("Not matched result of test query")))
+                    .then(Mono.from(connection.commitTransaction()))
+                    .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction()).then(Mono.error(new RuntimeException("Rolling back transaction of test connection", throwable))))
+                    )
+                ),
             Connection::close).log("R2dbcMigrateCreatingTestConnection", Level.FINE);
 
-        Mono<Void> migrationWork = stringMono.timeout(properties.getValidationQueryTimeout())
+        Mono<Void> migrationWork = testConnectionMono.timeout(properties.getValidationQueryTimeout())
                 .retryWhen(Retry.fixedDelay(properties.getConnectionMaxRetries(), properties.getValidationRetryDelay()).doBeforeRetry(retrySignal -> {
                     LOGGER.warn("Retrying to get database connection due {}: {}", retrySignal.failure().getClass(), retrySignal.failure().getMessage());
                 }))

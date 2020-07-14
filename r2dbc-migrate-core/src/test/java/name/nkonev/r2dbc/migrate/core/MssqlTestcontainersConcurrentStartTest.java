@@ -104,18 +104,19 @@ public class MssqlTestcontainersConcurrentStartTest {
             ConnectionFactory connectionFactory = makeConnectionMono(MSSQL_HARDCODED_PORT);
             R2dbcMigrate.migrate(connectionFactory, properties).block();
 
-            Flux<Client> clientFlux = Mono.from(connectionFactory.create())
-                .flatMapMany(connection -> Flux.from(
-                    connection.createStatement("select * from sales_department.rich_clients.client")
-                        .execute()).doFinally(signalType -> connection.close()))
-                .flatMap(o -> o.map((row, rowMetadata) -> {
-                    return new Client(
-                        row.get("first_name", String.class),
-                        row.get("second_name", String.class),
-                        row.get("account", String.class),
-                        row.get("estimated_money", Integer.class)
-                    );
-                }));
+            Flux<Client> clientFlux = Flux.usingWhen(
+                connectionFactory.create(),
+                connection -> Flux.from(connection.createStatement("select * from sales_department.rich_clients.client").execute())
+                    .flatMap(o -> o.map((row, rowMetadata) -> {
+                        return new Client(
+                            row.get("first_name", String.class),
+                            row.get("second_name", String.class),
+                            row.get("account", String.class),
+                            row.get("estimated_money", Integer.class)
+                        );
+                    })),
+                Connection::close
+            );
             Client client = clientFlux.blockLast();
 
             Assertions.assertEquals("John", client.firstName);
