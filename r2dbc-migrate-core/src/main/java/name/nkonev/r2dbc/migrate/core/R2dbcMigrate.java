@@ -131,7 +131,7 @@ public abstract class R2dbcMigrate {
         LOGGER.info("Configured with {}", properties);
 
         Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->{
-                LOGGER.info("Creating new connection");
+                LOGGER.info("Creating new test connection");
                 return Mono.from(connectionFactory.create());
             }),
             connection -> Flux
@@ -154,7 +154,10 @@ public abstract class R2dbcMigrate {
                 .doOnSuccess(o -> LOGGER.info("Successfully got result '{}' of test query", o))
                 // here we opens new connection and make all migration stuff
                 .then(Mono.usingWhen(
-                    connectionFactory.create(),
+                    Mono.defer(()->{
+                        LOGGER.info("Creating new migration connection");
+                        return Mono.from(connectionFactory.create());
+                    }),
                     connection -> doWork(connection, properties),
                     Connection::close
                 ));
