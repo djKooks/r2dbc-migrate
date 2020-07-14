@@ -34,6 +34,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptibles;
 import reactor.core.publisher.Flux;
@@ -79,6 +80,7 @@ public class MssqlTestcontainersConcurrentStartTest {
     @RepeatedTest(50)
     public void testThatMigratorCanHandleSituationWhenDatabaseStillStarting() {
         int randomInteger = random.nextInt(10);
+        Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(LOGGER);
         Thread thread = new Thread(() -> {
             LOGGER.info("Sleeping random {} seconds before start the container", randomInteger);
             Uninterruptibles.sleepUninterruptibly(randomInteger, TimeUnit.SECONDS);
@@ -89,6 +91,7 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .withEnv("MSSQL_COLLATION", "cyrillic_general_ci_as")
                 .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT);
             container.setPortBindings(Arrays.asList(MSSQL_HARDCODED_PORT+":"+MSSQL_HARDCODED_PORT));
+            container.followOutput(logConsumer);
             container.start();
         });
         thread.setDaemon(true);
