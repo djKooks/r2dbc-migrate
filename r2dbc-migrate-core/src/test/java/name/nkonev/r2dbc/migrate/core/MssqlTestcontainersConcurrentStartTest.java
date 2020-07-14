@@ -143,14 +143,15 @@ public class MssqlTestcontainersConcurrentStartTest {
             Assertions.assertEquals("4444", client.account);
             Assertions.assertEquals(9999999, client.estimatedMoney);
         } finally {
+            if (container!=null) {
+                container.stop();
+            }
             try {
                 thread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if (container!=null) {
-                container.stop();
-            }
+
 
         }
     }
