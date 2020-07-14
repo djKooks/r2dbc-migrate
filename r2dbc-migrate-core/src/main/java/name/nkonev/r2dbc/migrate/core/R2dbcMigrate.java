@@ -130,10 +130,9 @@ public abstract class R2dbcMigrate {
     public static Mono<Void> migrate(ConnectionFactory connectionFactory, R2dbcMigrateProperties properties) {
         LOGGER.info("Configured with {}", properties);
 
-        Function<ConnectionFactory, Publisher<? extends Connection>> makeConnectionPublisher = ConnectionFactory::create;
-
         Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->{
-                return Mono.from(makeConnectionPublisher.apply(connectionFactory));
+                LOGGER.info("Creating new connection");
+                return Mono.from(connectionFactory.create());
             }),
             connection -> Flux
                 .from(connection.createStatement(properties.getValidationQuery()).execute())
