@@ -140,10 +140,7 @@ public abstract class R2dbcMigrate {
                 .doOnSuccess(o -> LOGGER.info("Successfully got result '{}' of test query", o))
                 // here we opens new connection and make all migration stuff
                 .then(Mono.usingWhen(
-                    Mono.defer(()->{
-                        LOGGER.info("Creating new migration connection");
-                        return Mono.from(connectionFactory.create());
-                    }),
+                    connectionFactory.create(),
                     connection -> doWork(connection, properties),
                     Connection::close
                 ));
