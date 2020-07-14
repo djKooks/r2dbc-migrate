@@ -127,13 +127,13 @@ public abstract class R2dbcMigrate {
     }
 
     // entrypoint
-    public static Mono<Void> migrate(ConnectionFactory connectionSupplier, R2dbcMigrateProperties properties) {
+    public static Mono<Void> migrate(ConnectionFactory connectionFactory, R2dbcMigrateProperties properties) {
         LOGGER.info("Configured with {}", properties);
 
         Function<ConnectionFactory, Publisher<? extends Connection>> makeConnectionPublisher = ConnectionFactory::create;
 
         Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->{
-                return Mono.from(makeConnectionPublisher.apply(connectionSupplier));
+                return Mono.from(makeConnectionPublisher.apply(connectionFactory));
             }),
             connection -> Flux
                 .from(connection.createStatement(properties.getValidationQuery()).execute())
@@ -155,7 +155,7 @@ public abstract class R2dbcMigrate {
                 .doOnSuccess(o -> LOGGER.info("Successfully got result '{}' of test query", o))
                 // here we opens new connection and make all migration stuff
                 .then(Mono.usingWhen(
-                    connectionSupplier.create(),
+                    connectionFactory.create(),
                     connection -> doWork(connection, properties),
                     Connection::close
                 ));
