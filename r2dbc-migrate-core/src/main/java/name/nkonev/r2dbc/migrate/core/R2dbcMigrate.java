@@ -93,7 +93,7 @@ public abstract class R2dbcMigrate {
         } else {
             result = withAutoCommit(connection, integerFlux).then();
         }
-        return queryWithTimeoutAndFixedRetry(result, properties);
+        return result;
     }
 
     private static <T> Mono<Void> transactionalWrapUnchecked(Connection connection,
@@ -109,21 +109,7 @@ public abstract class R2dbcMigrate {
         } else {
             result = withAutoCommit(connection, integerFlux).then();
         }
-        return queryWithTimeoutAndFixedRetry(result, properties);
-    }
-
-    private static <T> Mono<T> queryWithTimeoutAndFixedRetry(Mono<T> action, R2dbcMigrateProperties properties) {
-        Mono<T> timeouted = action.timeout(properties.getQueryTimeout());
-        if (properties.getMaxRetries() > 0) {
-            return timeouted
-                .retryWhen(Retry.fixedDelay(properties.getMaxRetries(),
-                    properties.getRetryDelay()).doBeforeRetry(retrySignal -> {
-                    LOGGER.warn("Retrying perform action {}: {}", retrySignal.failure().getClass(),
-                        retrySignal.failure().getMessage());
-                }));
-        } else {
-            return timeouted;
-        }
+        return result;
     }
 
     // entrypoint
@@ -256,10 +242,10 @@ public abstract class R2dbcMigrate {
 
     private static Mono<Integer> getDatabaseVersionOrZero(SqlQueries sqlQueries, Connection connection, R2dbcMigrateProperties properties) {
 
-        return queryWithTimeoutAndFixedRetry(withAutoCommit(connection, connection.createStatement(sqlQueries.getMaxMigration()).execute())
+        return withAutoCommit(connection, connection.createStatement(sqlQueries.getMaxMigration()).execute())
             .last()
             .flatMap(o -> Mono.from(o.map(getResultSafely("max", Integer.class, 0))))
-            .switchIfEmpty(Mono.just(0)), properties);
+            .switchIfEmpty(Mono.just(0));
     }
 
     static <ColumnType> BiFunction<Row, RowMetadata, ColumnType> getResultSafely(String resultColumn, Class<ColumnType> ct, ColumnType defaultValue) {
