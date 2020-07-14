@@ -129,19 +129,21 @@ public abstract class R2dbcMigrate {
     public static Mono<Void> migrate(ConnectionFactory connectionSupplier, R2dbcMigrateProperties properties) {
         LOGGER.info("Configured with {}", properties);
 
-        Flux<? extends Result> testConnectionResults = Flux.usingWhen(connectionSupplier.create(),
-            connection -> Flux.from(connection.createStatement(properties.getValidationQuery()).execute()),
+        Mono<String> stringMono = Mono.usingWhen(Mono.defer(()->Mono.from(connectionSupplier.create())),
+            connection -> Flux
+                .from(connection.createStatement(properties.getValidationQuery()).execute())
+                .flatMap(o -> o.map(
+                    getResultSafely("result", String.class, "__VALIDATION_RESULT_NOT_PROVIDED")))
+                .filter(s -> {
+                    LOGGER.info("Comparing expected value '{}' with provided result '{}'",
+                        properties.getValidationQueryExpectedResultValue(), s);
+                    return properties.getValidationQueryExpectedResultValue().equals(s);
+                })
+                .switchIfEmpty(Mono.error(new RuntimeException("Not matched result of test query")))
+                .last(),
             Connection::close).log("R2dbcMigrateCreatingTestConnection", Level.FINE);
 
-        final Mono<String> toCheck = testConnectionResults
-            .flatMap(o -> o.map(getResultSafely("result", String.class, "__VALIDATION_RESULT_NOT_PROVIDED")))
-            .filter(s -> {
-                LOGGER.info("Comparing expected value '{}' with provided result '{}'", properties.getValidationQueryExpectedResultValue(), s);
-                return properties.getValidationQueryExpectedResultValue().equals(s);
-            })
-            .switchIfEmpty(Mono.error(new RuntimeException("Not matched result of test query")))
-            .last();
-        Mono<Void> migrationWork = toCheck.timeout(properties.getValidationQueryTimeout())
+        Mono<Void> migrationWork = stringMono.timeout(properties.getValidationQueryTimeout())
                 .retryWhen(Retry.fixedDelay(properties.getConnectionMaxRetries(), properties.getValidationRetryDelay()).doBeforeRetry(retrySignal -> {
                     LOGGER.warn("Retrying to get database connection due {}: {}", retrySignal.failure().getClass(), retrySignal.failure().getMessage());
                 }))
