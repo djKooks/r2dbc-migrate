@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptibles;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -89,8 +90,9 @@ public class MssqlTestcontainersConcurrentStartTest {
                 .withExposedPorts(MSSQL_HARDCODED_PORT)
                 .withEnv("ACCEPT_EULA", "Y")
                 .withEnv("SA_PASSWORD", password)
-                .withEnv("MSSQL_COLLATION", "cyrillic_general_ci_as")
-                .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT);
+                .withEnv("MSSQL_TCP_PORT", ""+MSSQL_HARDCODED_PORT)
+                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*SQL Server 2019 will run as non-root by default.*\\s") // dummy read first message
+                    .withStartupTimeout(Duration.ofSeconds(waitTestcontainersSeconds)));
             container.setPortBindings(Arrays.asList(MSSQL_HARDCODED_PORT+":"+MSSQL_HARDCODED_PORT));
             container.start();
         });
