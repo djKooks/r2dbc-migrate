@@ -67,6 +67,19 @@ public class MssqlTestcontainersConcurrentStartTest {
         return connectionFactory;
     }
 
+    private ConnectionFactory makeAnotherConnectionMono(int port) {
+        ConnectionFactory connectionFactory = ConnectionFactories.get(ConnectionFactoryOptions.builder()
+            .option(DRIVER, "mssql")
+            .option(HOST, "127.0.0.1")
+            .option(PORT, port)
+            .option(USER, "sa")
+            .option(PASSWORD, password)
+            .option(DATABASE, "my_db")
+            .option(Option.valueOf("connectTimeout"), Duration.of(2, ChronoUnit.SECONDS))
+            .build());
+        return connectionFactory;
+    }
+
     static class Client {
         String firstName, secondName, account;
         int estimatedMoney;
@@ -76,6 +89,15 @@ public class MssqlTestcontainersConcurrentStartTest {
             this.secondName = secondName;
             this.account = account;
             this.estimatedMoney = estimatedMoney;
+        }
+    }
+
+    static class Customer {
+        String firstName, secondName;
+
+        public Customer(String firstName, String secondName) {
+            this.firstName = firstName;
+            this.secondName = secondName;
         }
     }
 
@@ -124,9 +146,29 @@ public class MssqlTestcontainersConcurrentStartTest {
             properties.setValidationQueryExpectedResultValue("ololo");
             ConnectionFactory connectionFactory = makeConnectionMono(MSSQL_HARDCODED_PORT);
             R2dbcMigrate.migrate(connectionFactory, properties).block();
+            ConnectionFactory connectionFactory2 = makeAnotherConnectionMono(MSSQL_HARDCODED_PORT);
+
+
+            Flux<Customer> customerFlux = Flux.usingWhen(
+                connectionFactory2.create(),
+                connection -> Flux.from(connection.createStatement("select * from my_db.dbo.customer WHERE last_name = 'Фамилия'").execute())
+                    .flatMap(o -> o.map((row, rowMetadata) -> {
+                        return new Customer(
+                            row.get("first_name", String.class),
+                            row.get("last_name", String.class)
+                        );
+                    })),
+                Connection::close
+            );
+            List<Customer> block = customerFlux.collectList().block();
+            Customer customer = block.get(block.size()-1);
+
+            Assertions.assertEquals("Покупатель", customer.firstName);
+            Assertions.assertEquals("Фамилия", customer.secondName);
+
 
             Flux<Client> clientFlux = Flux.usingWhen(
-                connectionFactory.create(),
+                connectionFactory2.create(),
                 connection -> Flux.from(connection.createStatement("select * from sales_department.rich_clients.client").execute())
                     .flatMap(o -> o.map((row, rowMetadata) -> {
                         return new Client(
