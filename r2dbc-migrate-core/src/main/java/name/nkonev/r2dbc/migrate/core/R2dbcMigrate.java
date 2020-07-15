@@ -1,7 +1,6 @@
 package name.nkonev.r2dbc.migrate.core;
 
 import io.r2dbc.spi.*;
-import java.util.function.Function;
 import java.util.logging.Level;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import reactor.util.retry.Retry;
 
@@ -74,8 +72,7 @@ public abstract class R2dbcMigrate {
     }
 
     private static Mono<Void> transactionalWrap(Connection connection, boolean transactional,
-        Publisher<? extends io.r2dbc.spi.Result> migrationThings, String info,
-        R2dbcMigrateProperties properties) {
+        Publisher<? extends io.r2dbc.spi.Result> migrationThings, String info) {
 
         Mono<Integer> integerFlux = Flux.from(migrationThings)
                 .flatMap(Result::getRowsUpdated) // if we don't get rows updates we swallow potential errors from PostgreSQL
@@ -97,7 +94,7 @@ public abstract class R2dbcMigrate {
     }
 
     private static <T> Mono<Void> transactionalWrapUnchecked(Connection connection,
-        boolean transactional, Publisher<T> migrationThings, R2dbcMigrateProperties properties) {
+        boolean transactional, Publisher<T> migrationThings) {
 
         Flux<T> integerFlux = Flux.from(migrationThings);
 
@@ -150,11 +147,11 @@ public abstract class R2dbcMigrate {
         return migrationWork;
     }
 
-    private static Mono<Void> ensureInternals(Connection connection, SqlQueries sqlQueries, R2dbcMigrateProperties properties) {
+    private static Mono<Void> ensureInternals(Connection connection, SqlQueries sqlQueries) {
         Batch createInternals = connection.createBatch();
         sqlQueries.createInternalTables().forEach(createInternals::add);
         Publisher<? extends Result> createInternalTables = createInternals.execute();
-        return transactionalWrap(connection, true, createInternalTables, "Making internal tables", properties);
+        return transactionalWrap(connection, true, createInternalTables, "Making internal tables");
     }
 
     private static Mono<Void> acquireOrWaitForLock(Connection connection, SqlQueries sqlQueries, R2dbcMigrateProperties properties) {
@@ -175,7 +172,7 @@ public abstract class R2dbcMigrate {
         Mono<Integer> waitForLock = lockUpdated.retryWhen(reactor.util.retry.Retry.fixedDelay(properties.getAcquireLockMaxRetries(), properties.getAcquireLockRetryDelay()).doAfterRetry(retrySignal -> {
             LOGGER.warn("Waiting for lock");
         }));
-        return transactionalWrapUnchecked(connection, true, waitForLock, properties);
+        return transactionalWrapUnchecked(connection, true, waitForLock);
     }
 
     private static Flux<Tuple2<Resource, FilenameParser.MigrationInfo>> getFileResources(R2dbcMigrateProperties properties) {
@@ -197,13 +194,13 @@ public abstract class R2dbcMigrate {
         return Flux.fromIterable(collect);
     }
 
-    private static Mono<Void> releaseLock(Connection connection, SqlQueries sqlQueries, R2dbcMigrateProperties properties) {
-        return transactionalWrap(connection, true, (connection.createStatement(sqlQueries.releaseLock()).execute()), "Releasing lock", properties);
+    private static Mono<Void> releaseLock(Connection connection, SqlQueries sqlQueries) {
+        return transactionalWrap(connection, true, (connection.createStatement(sqlQueries.releaseLock()).execute()), "Releasing lock");
     }
 
-    private static Mono<Void> releaseLockAfterError(Throwable throwable, Connection connection, SqlQueries sqlQueries, R2dbcMigrateProperties properties) {
+    private static Mono<Void> releaseLockAfterError(Throwable throwable, Connection connection, SqlQueries sqlQueries) {
         LOGGER.error("Got error", throwable);
-        return transactionalWrap(connection, false, (connection.createStatement(sqlQueries.releaseLock()).execute()), "Releasing lock after error", properties);
+        return transactionalWrap(connection, false, (connection.createStatement(sqlQueries.releaseLock()).execute()), "Releasing lock after error");
     }
 
     private static Mono<Void> doWork(Connection connection, R2dbcMigrateProperties properties) {
@@ -211,7 +208,7 @@ public abstract class R2dbcMigrate {
         LOGGER.debug("Instantiated {}", sqlQueries.getClass());
 
         return
-                ensureInternals(connection, sqlQueries, properties)
+                ensureInternals(connection, sqlQueries)
                         .log("R2dbcMigrateEnsuringInternals", Level.FINE)
                         .then(acquireOrWaitForLock(connection, sqlQueries, properties).log("R2dbcMigrateAcquiringLock", Level.FINE))
                         .then(getDatabaseVersionOrZero(sqlQueries, connection, properties).log("R2dbcMigrateGetDatabaseVersion", Level.FINE))
@@ -223,21 +220,21 @@ public abstract class R2dbcMigrate {
                                     // We need to guarantee sequential queries for BEGIN; STATEMENTS; COMMIT; wrappings for PostgreSQL
                                     .concatMap(tuple2 ->
                                             makeMigration(connection, properties, tuple2).log("R2dbcMigrateMakeMigrationWork", Level.FINE)
-                                                .then(writeMigrationMetadata(connection, sqlQueries, tuple2, properties).log("R2dbcMigrateWritingMigrationMetadata", Level.FINE))
+                                                .then(writeMigrationMetadata(connection, sqlQueries, tuple2).log("R2dbcMigrateWritingMigrationMetadata", Level.FINE))
                                     , 1)
-                                    .onErrorResume(throwable -> releaseLockAfterError(throwable, connection, sqlQueries, properties).then(Mono.error(throwable)))
-                                    .then(releaseLock(connection, sqlQueries, properties).log("R2dbcMigrateReleasingLock", Level.FINE));
+                                    .onErrorResume(throwable -> releaseLockAfterError(throwable, connection, sqlQueries).then(Mono.error(throwable)))
+                                    .then(releaseLock(connection, sqlQueries).log("R2dbcMigrateReleasingLock", Level.FINE));
                         });
 
     }
 
     private static Mono<Void> makeMigration(Connection connection, R2dbcMigrateProperties properties, Tuple2<Resource, FilenameParser.MigrationInfo> tt) {
         LOGGER.info("Applying {}", tt.getT2());
-        return transactionalWrap(connection, tt.getT2().isTransactional(), getMigrateResultPublisher(properties, connection, tt.getT1(), tt.getT2()), tt.getT2().toString(), properties);
+        return transactionalWrap(connection, tt.getT2().isTransactional(), getMigrateResultPublisher(properties, connection, tt.getT1(), tt.getT2()), tt.getT2().toString());
     }
 
-    private static Mono<Void> writeMigrationMetadata(Connection connection, SqlQueries sqlQueries, Tuple2<Resource, FilenameParser.MigrationInfo> tt, R2dbcMigrateProperties properties) {
-        return transactionalWrap(connection, true, sqlQueries.createInsertMigrationStatement(connection, tt.getT2()).execute(), "Writing metadata version " + tt.getT2().getVersion(), properties);
+    private static Mono<Void> writeMigrationMetadata(Connection connection, SqlQueries sqlQueries, Tuple2<Resource, FilenameParser.MigrationInfo> tt) {
+        return transactionalWrap(connection, true, sqlQueries.createInsertMigrationStatement(connection, tt.getT2()).execute(), "Writing metadata version " + tt.getT2().getVersion());
     }
 
     private static Mono<Integer> getDatabaseVersionOrZero(SqlQueries sqlQueries, Connection connection, R2dbcMigrateProperties properties) {
