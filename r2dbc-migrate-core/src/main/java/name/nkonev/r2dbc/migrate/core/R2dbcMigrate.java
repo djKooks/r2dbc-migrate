@@ -77,16 +77,21 @@ public abstract class R2dbcMigrate {
         return Mono.from(connection.setAutoCommit(true)).thenMany(action);
     }
 
+    private static Mono<Integer> getRowsUpdated(Publisher<? extends io.r2dbc.spi.Result> migrationThings) {
+        Mono<Integer> integerFlux = Flux.from(migrationThings)
+            .flatMap(Result::getRowsUpdated) // if we don't get rows updates we swallow potential errors from PostgreSQL
+            .switchIfEmpty(Mono.just(0)) // prevent emitting empty flux
+            .reduceWith(() -> 0, Integer::sum);
+        return integerFlux;
+    }
+
     private static Mono<Void> transactionalWrap(Connection connection, boolean transactional,
         Publisher<? extends io.r2dbc.spi.Result> migrationThings, String info) {
 
-        Mono<Integer> integerFlux = Flux.from(migrationThings)
-                .flatMap(Result::getRowsUpdated) // if we don't get rows updates we swallow potential errors from PostgreSQL
-                .switchIfEmpty(Mono.just(0)) // prevent emitting empty flux
-                .reduceWith(() -> 0, Integer::sum)
-                .doOnSuccess(integer -> {
-                    LOGGER.info(ROWS_UPDATED, info, integer);
-                });
+        Mono<Integer> integerFlux = getRowsUpdated(migrationThings)
+            .doOnSuccess(integer -> {
+            LOGGER.info(ROWS_UPDATED, info, integer);
+        });
 
         Mono<Void> result;
         if (transactional) {
@@ -173,8 +178,24 @@ public abstract class R2dbcMigrate {
     private static Mono<Void> ensureInternals(Connection connection, SqlQueries sqlQueries) {
         Batch createInternals = connection.createBatch();
         sqlQueries.createInternalTables().forEach(createInternals::add);
-        Publisher<? extends Result> createInternalTables = createInternals.execute();
-        return transactionalWrap(connection, true, createInternalTables, "Making internal tables");
+
+        Mono<Integer> createInternalsMono = getRowsUpdated(Flux.from(createInternals.execute()));
+
+//        Mono<Void> making_internal_tables = transactionalWrap(connection, true, createInternalTables, "Making internal tables");
+
+        Mono<Boolean> needCreateInternals = Mono.from(connection.createStatement("SELECT EXISTS  ("
+            + "   SELECT FROM pg_catalog.pg_class c"
+            + "   JOIN   pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
+            + "   WHERE  c.relname = 'migrations'"
+            /*+ "   AND    n.nspname = 'public'"*/ + "   AND    n.nspname = current_schema()"
+            + "   AND    c.relkind = 'r'"
+            + "   )").execute())
+            .flatMap(result -> Mono.from(result.map((row, rowMetadata) -> row.get(0, Boolean.class))))
+            .filter(aBoolean -> !Boolean.TRUE.equals(aBoolean));
+
+        Mono<Integer> createInternalTables = needCreateInternals.flatMap(notMatters -> createInternalsMono);
+
+        return transactionalWrapUnchecked(connection, true, createInternalTables);
     }
 
     private static Mono<Void> acquireOrWaitForLock(Connection connection, SqlQueries sqlQueries, R2dbcMigrateProperties properties) {
@@ -221,7 +242,7 @@ public abstract class R2dbcMigrate {
             MigrationInfo migrationInvo2 = o2.getT2();
             return Integer.compare(migrationInfo1.getVersion(), migrationInvo2.getVersion());
         }).peek(objects -> {
-            LOGGER.info("From {} parsed metadata {}", objects.getT1(), objects.getT2());
+            LOGGER.debug("From {} parsed metadata {}", objects.getT1(), objects.getT2());
         }).collect(Collectors.toList());
         return Flux.fromIterable(sortedResources);
     }

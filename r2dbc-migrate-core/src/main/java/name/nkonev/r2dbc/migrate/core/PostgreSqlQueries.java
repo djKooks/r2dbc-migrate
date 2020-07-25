@@ -46,9 +46,9 @@ public class PostgreSqlQueries implements SqlQueries {
     @Override
     public List<String> createInternalTables() {
         return Arrays.asList(
-                withMigrationsTable("create table if not exists %s(id int primary key, description text)"),
-                withMigrationsLockTable("create table if not exists %s(id int primary key, locked boolean not null)"),
-                withMigrationsLockTable("insert into %s(id, locked) values (1, false) on conflict (id) do nothing")
+                withMigrationsTable("create table %s(id int primary key, description text)"),
+                withMigrationsLockTable("create table %s(id int primary key, locked boolean not null)"),
+                withMigrationsLockTable("insert into %s(id, locked) values (1, false)")
         );
     }
 
